@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FileText, Mail, Lock, User, Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
-import { authenticateUser, registerUser } from "@/lib/localAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -20,6 +20,7 @@ const Auth = () => {
   const [googleLoading, setGoogleLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { signIn, register } = useAuth();
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,9 +29,9 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        await authenticateUser(email, password);
+        await signIn(email, password);
       } else {
-        await registerUser(email, password, fullName);
+        await register(email, password, fullName);
       }
       navigate("/");
     } catch (error: any) {
