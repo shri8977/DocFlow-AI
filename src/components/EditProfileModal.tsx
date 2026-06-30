@@ -33,7 +33,6 @@ const EditProfileModal = ({ isOpen, onClose }: Props) => {
     };
   }, [isOpen]);
 
-  // 🔥 Fetch profile from Supabase
   useEffect(() => {
     const fetchProfile = async () => {
       if (!user) return;

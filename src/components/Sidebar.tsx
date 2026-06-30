@@ -57,8 +57,8 @@ const SidebarContent = ({ activeTool, onSelectTool }: { activeTool: ToolId; onSe
 
   let lastCategory = "";
 
-  const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email || "User";
-  const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url;
+  const displayName = profile?.full_name || user?.full_name || user?.email || "User";
+  const avatarUrl = profile?.avatar_url || user?.avatar_url || undefined;
   const initial = displayName.charAt(0).toUpperCase();
 
   return (
