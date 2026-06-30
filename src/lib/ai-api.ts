@@ -39,8 +39,96 @@ export async function aiSummarize(text: string): Promise<string> {
   return `Summary:\n${summary}`;
 }
 
+const TRANSLATION_DICTIONARY: Record<string, Record<string, string>> = {
+  Spanish: {
+    hello: "hola",
+    world: "mundo",
+    translate: "traducir",
+    text: "texto",
+    document: "documento",
+    summary: "resumen",
+    question: "pregunta",
+    ai: "IA",
+    please: "por favor",
+    thank: "gracias",
+    you: "tú",
+    good: "bueno",
+    morning: "día",
+    evening: "tarde",
+  },
+  French: {
+    hello: "bonjour",
+    world: "monde",
+    translate: "traduire",
+    text: "texte",
+    document: "document",
+    summary: "résumé",
+    question: "question",
+    ai: "IA",
+    please: "s'il vous plaît",
+    thank: "merci",
+    you: "vous",
+    good: "bon",
+    morning: "matin",
+    evening: "soir",
+  },
+  German: {
+    hello: "hallo",
+    world: "welt",
+    translate: "übersetzen",
+    text: "text",
+    document: "dokument",
+    summary: "zusammenfassung",
+    question: "frage",
+    ai: "KI",
+    please: "bitte",
+    thank: "danke",
+    you: "du",
+    good: "gut",
+    morning: "morgen",
+    evening: "abend",
+  },
+  Italian: {
+    hello: "ciao",
+    world: "mondo",
+    translate: "tradurre",
+    text: "testo",
+    document: "documento",
+    summary: "riassunto",
+    question: "domanda",
+    ai: "IA",
+    please: "per favore",
+    thank: "grazie",
+    you: "tu",
+    good: "buono",
+    morning: "mattina",
+    evening: "sera",
+  },
+};
+
+const translateText = (text: string, targetLanguage: string) => {
+  const dictionary = TRANSLATION_DICTIONARY[targetLanguage];
+  if (!dictionary) {
+    return text;
+  }
+
+  return text
+    .split(/(\b)/)
+    .map((chunk) => {
+      const key = chunk.toLowerCase();
+      if (dictionary[key]) {
+        const translated = dictionary[key];
+        return chunk[0] === chunk[0]?.toUpperCase()
+          ? translated.charAt(0).toUpperCase() + translated.slice(1)
+          : translated;
+      }
+      return chunk;
+    })
+    .join("");
+};
+
 const fallbackTranslation = (text: string, targetLanguage: string) => {
-  return `This is a local translation simulation for ${targetLanguage}.\n\n${text}`;
+  return translateText(text, targetLanguage);
 };
 
 export async function aiTranslate(text: string, targetLanguage: string): Promise<string> {
