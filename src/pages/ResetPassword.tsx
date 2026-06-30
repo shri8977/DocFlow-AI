@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Lock, Loader2, Check } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { updatePassword } from "@/lib/localAuth";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
@@ -25,8 +25,7 @@ const ResetPassword = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password });
-      if (error) throw error;
+      await updatePassword(userId, password);
       setSuccess(true);
       setTimeout(() => navigate("/"), 2000);
     } catch (error: any) {

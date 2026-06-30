@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { updateUserProfile, loadUserProfile } from "@/lib/localAuth";
 
 interface Props {
   isOpen: boolean;
@@ -38,36 +38,25 @@ const EditProfileModal = ({ isOpen, onClose }: Props) => {
     const fetchProfile = async () => {
       if (!user) return;
 
-      const { data } = await supabase
-        .from("profiles")
-        .select("full_name, avatar_url")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      setName(data?.full_name || "");
-      setSelectedAvatar(data?.avatar_url || avatars[0]);
+      const profileData = await loadUserProfile(user.id);
+      setName(profileData.full_name || "");
+      setSelectedAvatar(profileData.avatar_url || avatars[0]);
     };
 
     if (isOpen) fetchProfile();
   }, [user, isOpen]);
 
-  // 🔥 Save to Supabase
   const handleSave = async () => {
     if (!user) return;
-
-    const { error } = await supabase
-  .from("profiles")
-  .upsert({
-    id: user.id, // 🔥 IMPORTANT
-    full_name: name,
-    avatar_url: selectedAvatar,
-    updated_at: new Date().toISOString(),
-  });
-    if (error) {
-      console.log("Error:", error.message);
-    } else {
+    try {
+      await updateUserProfile(user.id, {
+        full_name: name,
+        avatar_url: selectedAvatar,
+      });
       console.log("Saved successfully ✅");
       onClose();
+    } catch (error: any) {
+      console.log("Error:", error.message);
     }
   };
 

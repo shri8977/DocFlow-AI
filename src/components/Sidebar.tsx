@@ -7,7 +7,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import ThemeToggle from "./ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
 
 // ✅ NEW MODAL
 import EditProfileModal from "./EditProfileModal";
@@ -57,17 +56,6 @@ const SidebarContent = ({ activeTool, onSelectTool }: { activeTool: ToolId; onSe
   const [profile, setProfile] = useState<{ full_name: string | null; avatar_url: string | null } | null>(null);
 
   let lastCategory = "";
-
-  useEffect(() => {
-    if (user) {
-      supabase
-        .from("profiles")
-        .select("full_name, avatar_url")
-        .eq("id", user.id)
-        .single()
-        .then(({ data }) => setProfile(data));
-    }
-  }, [user, profileOpen]);
 
   const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email || "User";
   const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url;
