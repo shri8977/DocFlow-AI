@@ -60,8 +60,10 @@ const Index = () => {
         
         {/* Menu */}
         <button
+          type="button"
           onClick={() => setSidebarOpen(true)}
           className="p-2 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+          aria-label="Open navigation menu"
         >
           <Menu className="w-5 h-5" />
         </button>
@@ -81,8 +83,10 @@ const Index = () => {
           
           {/* Profile Button */}
           <button
+            type="button"
             onClick={() => setOpenProfile(true)}
             className="p-2 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+            aria-label="Open profile settings"
           >
             <User className="w-5 h-5" />
           </button>

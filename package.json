@@ -1,7 +1,8 @@
 {
-  "name": "vite_react_shadcn_ts",
+  "name": "docflow-ai",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "DocFlow AI - AI-powered document tools",
   "type": "module",
   "scripts": {
     "dev": "vite",

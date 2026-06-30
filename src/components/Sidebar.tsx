@@ -113,12 +113,14 @@ const SidebarContent = ({ activeTool, onSelectTool }: { activeTool: ToolId; onSe
         {user && (
           <div className="flex items-center justify-between">
             <button
+              type="button"
               onClick={() => setProfileOpen(true)}
               className="flex items-center gap-2"
+              aria-label="Open profile settings"
             >
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
                 {avatarUrl ? (
-                  <img src={avatarUrl} className="w-full h-full object-cover" />
+                  <img src={avatarUrl} alt={`${displayName} avatar`} className="w-full h-full object-cover" />
                 ) : (
                   <span className="text-xs font-semibold text-primary">{initial}</span>
                 )}
@@ -131,10 +133,10 @@ const SidebarContent = ({ activeTool, onSelectTool }: { activeTool: ToolId; onSe
             </button>
 
             <div className="flex gap-1">
-              <button onClick={() => setProfileOpen(true)}>
+              <button type="button" onClick={() => setProfileOpen(true)} aria-label="Open profile settings">
                 <Settings className="w-4 h-4" />
               </button>
-              <button onClick={signOut}>
+              <button type="button" onClick={signOut} aria-label="Sign out">
                 <LogOut className="w-4 h-4" />
               </button>
             </div>
