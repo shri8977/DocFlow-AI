@@ -35,6 +35,22 @@ const getAIKey = () => {
   return typeof key === "string" ? key : "";
 };
 
+const callAIAgent = async (path: string, payload: Record<string, unknown>) => {
+  const response = await fetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`AI request failed: ${response.status} ${errorText}`);
+  }
+
+  const result = await response.json();
+  return result;
+};
+
 const callAI = async (prompt: string, systemPrompt: string) => {
   const apiKey = getAIKey();
   if (!apiKey) {
@@ -114,12 +130,23 @@ export async function aiSummarize(text: string): Promise<string> {
   if (!trimmedText) return "No text provided to summarize.";
 
   try {
-    const summary = await callAI(
-      `Summarize the following text clearly and concisely. Keep the main ideas and key details.\n\n${trimmedText.slice(0, 20000)}`,
-      "You are a helpful document summarizer. Write clear, factual summaries that preserve the core meaning."
-    );
-    return summary.trim();
+    const result = await callAIAgent("/api/ai-summarize", { text: trimmedText });
+    if (result?.success && typeof result.summary === "string") {
+      return result.summary.trim();
+    }
+    throw new Error(result?.message || "Unexpected response from summarize endpoint");
   } catch (error) {
+    if (import.meta.env.DEV) {
+      try {
+        const summary = await callAI(
+          `Summarize the following text clearly and concisely. Keep the main ideas and key details.\n\n${trimmedText.slice(0, 20000)}`,
+          "You are a helpful document summarizer. Write clear, factual summaries that preserve the core meaning."
+        );
+        return summary.trim();
+      } catch (devError) {
+        console.error("AI summarize failed, using fallback:", devError);
+      }
+    }
     console.error("AI summarize failed, using fallback:", error);
     return fallbackSummarize(trimmedText);
   }
@@ -335,12 +362,23 @@ export async function aiTranslate(text: string, targetLanguage: string): Promise
   if (!trimmedText) return "No text provided to translate.";
 
   try {
-    const translated = await callAI(
-      `Translate the following text to ${targetLanguage}. Preserve the original meaning, tone, and formatting. Return only the translated text.\n\n${trimmedText.slice(0, 20000)}`,
-      "You are a professional translator. Return only the translated text and nothing else."
-    );
-    return translated.trim();
+    const result = await callAIAgent("/api/ai-translate", { text: trimmedText, targetLanguage });
+    if (result?.success && typeof result.translation === "string") {
+      return result.translation.trim();
+    }
+    throw new Error(result?.message || "Unexpected response from translate endpoint");
   } catch (error) {
+    if (import.meta.env.DEV) {
+      try {
+        const translated = await callAI(
+          `Translate the following text to ${targetLanguage}. Preserve the original meaning, tone, and formatting. Return only the translated text.\n\n${trimmedText.slice(0, 20000)}`,
+          "You are a professional translator. Return only the translated text and nothing else."
+        );
+        return translated.trim();
+      } catch (devError) {
+        console.error("AI translate failed, using fallback:", devError);
+      }
+    }
     console.error("AI translate failed, using fallback:", error);
     return fallbackTranslation(trimmedText, targetLanguage);
   }
