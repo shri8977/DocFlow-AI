@@ -6,31 +6,49 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-async function callGemini(prompt: string, systemPrompt: string) {
-  const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-  if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
+async function callAI(prompt: string, systemPrompt: string) {
+  const apiKey = Deno.env.get("GROQ_API_KEY") || Deno.env.get("GEMINI_API_KEY");
+  if (!apiKey) throw new Error("AI API key not configured");
 
+  const isGroq = apiKey.startsWith("gsk_");
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+    isGroq
+      ? "https://api.groq.com/openai/v1/chat/completions"
+      : `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
     {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: systemPrompt }] },
-        contents: [{ parts: [{ text: prompt }] }],
-      }),
+      headers: {
+        "Content-Type": "application/json",
+        ...(isGroq ? { Authorization: `Bearer ${apiKey}` } : {}),
+      },
+      body: JSON.stringify(
+        isGroq
+          ? {
+              model: "llama-3.3-70b-versatile",
+              messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: prompt },
+              ],
+              temperature: 0.2,
+              max_tokens: 1024,
+            }
+          : {
+              system_instruction: { parts: [{ text: systemPrompt }] },
+              contents: [{ parts: [{ text: prompt }] }],
+            }
+      ),
     }
   );
 
-  if (response.status === 429) throw new Error("Rate limit reached. Please try again in a moment.");
   if (!response.ok) {
     const err = await response.text();
-    console.error("Gemini error:", response.status, err);
-    throw new Error("AI service error");
+    throw new Error(`AI request failed: ${response.status} ${err}`);
   }
 
   const result = await response.json();
-  const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+  const text = isGroq
+    ? result?.choices?.[0]?.message?.content?.trim()
+    : result?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
   if (!text) throw new Error("AI returned empty response");
   return text;
 }
@@ -45,7 +63,7 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const translation = await callGemini(
+    const translation = await callAI(
       `Translate the following text to ${targetLanguage}:\n\n${text.slice(0, 15000)}`,
       "You are a professional translator. Translate accurately while preserving the original meaning, tone, and formatting. Only return the translation, no explanations."
     );
